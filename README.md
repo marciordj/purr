@@ -14,16 +14,14 @@ Files that use H.264/HEVC codecs are **remuxed** (container swap only — instan
 ## Install
 
 ```sh
-go install github.com/marciord/purr/cmd/purr@latest
-```
-
-Or build from source:
-
-```sh
 git clone https://github.com/marciord/purr
 cd purr
-go build -o purr ./cmd/purr
+make install
 ```
+
+This builds and copies the binary to `~/.local/bin/purr`. Ensure `~/.local/bin` is in your `PATH`.
+
+To update after code changes: `make install` again. To uninstall: `make uninstall`.
 
 ## Usage
 
