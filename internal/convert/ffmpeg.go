@@ -29,19 +29,33 @@ func remuxArgs(in, out string) []string {
 	}
 }
 
-func reencodeArgs(in, out string) []string {
-	return []string{
+func compressArgs(in, out string, audioCompatible bool) []string {
+	args := []string{
 		"-v", "error",
 		"-nostdin",
 		"-i", in,
-		"-c:v", "libx264",
-		"-crf", "18",
-		"-preset", "medium",
-		"-c:a", "aac",
+		"-c:v", "hevc_videotoolbox",
+		"-q:v", "65",
+		"-tag:v", "hvc1",
+		"-allow_sw", "1",
+	}
+	if audioCompatible {
+		args = append(args, "-c:a", "copy")
+	} else {
+		args = append(args, "-c:a", "aac", "-b:a", "192k")
+	}
+	return append(args,
 		"-movflags", "+faststart",
 		"-progress", "pipe:1",
 		"-nostats",
 		"-y",
 		out,
+	)
+}
+
+func chooseArgs(in, out string, r *probeResult, fast bool) []string {
+	if fast && !needsReencode(r) {
+		return remuxArgs(in, out)
 	}
+	return compressArgs(in, out, audioIsAAC(r))
 }

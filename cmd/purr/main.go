@@ -26,19 +26,18 @@ func main() {
 }
 
 func directMode() tea.Model {
-	var inputs []string
-	for _, arg := range os.Args[1:] {
-		if !strings.EqualFold(filepath.Ext(arg), ".mov") {
-			fmt.Fprintf(os.Stderr, "error: %q is not a .mov file\n", arg)
-			os.Exit(1)
-		}
+	inputs, fast, err := parseArgs(os.Args[1:])
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error:", err)
+		os.Exit(1)
+	}
+	for _, arg := range inputs {
 		if _, err := os.Stat(arg); err != nil {
 			fmt.Fprintf(os.Stderr, "error: %s\n", err)
 			os.Exit(1)
 		}
-		inputs = append(inputs, arg)
 	}
-	return tui.New(inputs)
+	return tui.New(inputs, fast)
 }
 
 func pickerMode() tea.Model {
@@ -56,7 +55,7 @@ func pickerMode() tea.Model {
 		fmt.Fprintln(os.Stderr, "no .mov files in current directory")
 		os.Exit(1)
 	}
-	return tui.NewApp(picker)
+	return tui.NewApp(picker, false)
 }
 
 func run(m tea.Model) {
@@ -64,4 +63,20 @@ func run(m tea.Model) {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
 	}
+}
+
+func parseArgs(argv []string) (inputs []string, fast bool, err error) {
+	for _, arg := range argv {
+		switch {
+		case arg == "--fast" || arg == "-f":
+			fast = true
+		case strings.HasPrefix(arg, "-"):
+			return nil, false, fmt.Errorf("unknown flag %q", arg)
+		case !strings.EqualFold(filepath.Ext(arg), ".mov"):
+			return nil, false, fmt.Errorf("%q is not a .mov file", arg)
+		default:
+			inputs = append(inputs, arg)
+		}
+	}
+	return inputs, fast, nil
 }

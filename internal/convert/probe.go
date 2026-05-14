@@ -43,6 +43,15 @@ func probe(path string) (*probeResult, error) {
 	return &r, nil
 }
 
+func audioIsAAC(r *probeResult) bool {
+	for _, s := range r.Streams {
+		if s.CodecType == "audio" {
+			return s.CodecName == "aac"
+		}
+	}
+	return false
+}
+
 func needsReencode(r *probeResult) bool {
 	for _, s := range r.Streams {
 		switch s.CodecType {

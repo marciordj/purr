@@ -44,10 +44,12 @@ type Model struct {
 	progCh      <-chan convert.Progress
 	errCh       <-chan error
 	width       int
+	fast        bool
 }
 
 // New creates a Model with one job per input path.
-func New(inputs []string) Model {
+// When fast is true, compatible-codec files are remuxed instead of compressed.
+func New(inputs []string, fast bool) Model {
 	jobs := make([]job, len(inputs))
 	for i, in := range inputs {
 		ext := filepath.Ext(in)
@@ -59,6 +61,7 @@ func New(inputs []string) Model {
 		current: -1,
 		bar:     progress.New(progress.WithDefaultGradient(), progress.WithWidth(40)),
 		width:   80,
+		fast:    fast,
 	}
 }
 
@@ -199,7 +202,7 @@ func (m Model) startNext() (Model, tea.Cmd) {
 		m.jobs[i].status = statusRunning
 		ctx, cancel := context.WithCancel(context.Background())
 		m.cancel = cancel
-		progCh, errCh := convert.Convert(ctx, m.jobs[i].input, m.jobs[i].output)
+		progCh, errCh := convert.Convert(ctx, m.jobs[i].input, m.jobs[i].output, m.fast)
 		m.progCh = progCh
 		m.errCh = errCh
 		return m, tea.Batch(

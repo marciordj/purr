@@ -13,7 +13,8 @@ import (
 // Convert starts the conversion of in to out and returns a progress channel
 // and an error channel. Both channels are closed when conversion finishes.
 // Cancelling ctx kills the ffmpeg process and removes any partial output.
-func Convert(ctx context.Context, in, out string) (<-chan Progress, <-chan error) {
+// When fast is true, compatible-codec files are remuxed instead of re-encoded.
+func Convert(ctx context.Context, in, out string, fast bool) (<-chan Progress, <-chan error) {
 	progCh := make(chan Progress, 8)
 	errCh := make(chan error, 1)
 
@@ -21,7 +22,7 @@ func Convert(ctx context.Context, in, out string) (<-chan Progress, <-chan error
 		defer close(progCh)
 		defer close(errCh)
 
-		err := runConvert(ctx, in, out, progCh)
+		err := runConvert(ctx, in, out, fast, progCh)
 		if err != nil {
 			if ctx.Err() != nil {
 				os.Remove(out)
@@ -37,7 +38,7 @@ func Convert(ctx context.Context, in, out string) (<-chan Progress, <-chan error
 	return progCh, errCh
 }
 
-func runConvert(ctx context.Context, in, out string, progCh chan<- Progress) error {
+func runConvert(ctx context.Context, in, out string, fast bool, progCh chan<- Progress) error {
 	r, err := probe(in)
 	if err != nil {
 		return fmt.Errorf("probe %q: %w", in, err)
@@ -48,12 +49,7 @@ func runConvert(ctx context.Context, in, out string, progCh chan<- Progress) err
 		durationSec, _ = strconv.ParseFloat(r.Format.Duration, 64)
 	}
 
-	var args []string
-	if needsReencode(r) {
-		args = reencodeArgs(in, out)
-	} else {
-		args = remuxArgs(in, out)
-	}
+	args := chooseArgs(in, out, r, fast)
 
 	cmd := exec.CommandContext(ctx, "ffmpeg", args...)
 	stdout, err := cmd.StdoutPipe()

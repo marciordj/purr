@@ -15,11 +15,12 @@ type App struct {
 	phase  phase
 	picker Picker
 	runner Model
+	fast   bool
 }
 
 // NewApp creates an App starting at the picker screen.
-func NewApp(picker Picker) App {
-	return App{picker: picker}
+func NewApp(picker Picker, fast bool) App {
+	return App{picker: picker, fast: fast}
 }
 
 func (a App) Init() tea.Cmd {
@@ -32,7 +33,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m, cmd := a.picker.Update(msg)
 		a.picker = m.(Picker)
 		if a.picker.done {
-			a.runner = New(a.picker.Selected())
+			a.runner = New(a.picker.Selected(), a.fast)
 			a.phase = phaseRunner
 			return a, a.runner.Init()
 		}
