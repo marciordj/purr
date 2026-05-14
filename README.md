@@ -26,14 +26,25 @@ To update after code changes: `make install` again. To uninstall: `make uninstal
 ## Usage
 
 ```sh
-purr file.mov
-purr *.mov
-purr recording1.mov recording2.mov
+purr             # open file picker in current directory
+purr file.mov    # convert directly (no picker)
+purr *.mov       # convert all matched files
 ```
 
 Output files are written next to the input (e.g. `video.mov` → `video.mp4`). Existing `.mp4` files are skipped.
 
 ## Keybindings
+
+**File picker**
+
+| Key          | Action                  |
+|--------------|-------------------------|
+| `↑`/`↓`, `k`/`j` | Move cursor        |
+| `space`      | Toggle selection        |
+| `enter`      | Start conversion        |
+| `q` / `esc`  | Quit                    |
+
+**Conversion**
 
 | Key      | Action                                |
 |----------|---------------------------------------|

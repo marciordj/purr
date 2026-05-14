@@ -11,25 +11,21 @@ import (
 	"github.com/marciord/purr/internal/tui"
 )
 
-const usage = `purr — .mov to .mp4 converter
-
-Usage:
-  purr <file.mov> [file.mov ...]
-
-Requirements:
-  ffmpeg and ffprobe must be available in PATH.`
-
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, usage)
-		os.Exit(1)
-	}
-
 	if err := convert.EnsureDeps(); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
 	}
 
+	if len(os.Args) >= 2 {
+		run(directMode())
+		return
+	}
+
+	run(pickerMode())
+}
+
+func directMode() tea.Model {
 	var inputs []string
 	for _, arg := range os.Args[1:] {
 		if !strings.EqualFold(filepath.Ext(arg), ".mov") {
@@ -42,8 +38,29 @@ func main() {
 		}
 		inputs = append(inputs, arg)
 	}
+	return tui.New(inputs)
+}
 
-	if _, err := tea.NewProgram(tui.New(inputs)).Run(); err != nil {
+func pickerMode() tea.Model {
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error:", err)
+		os.Exit(1)
+	}
+	picker, err := tui.NewPicker(cwd)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error:", err)
+		os.Exit(1)
+	}
+	if picker.Empty() {
+		fmt.Fprintln(os.Stderr, "no .mov files in current directory")
+		os.Exit(1)
+	}
+	return tui.NewApp(picker)
+}
+
+func run(m tea.Model) {
+	if _, err := tea.NewProgram(m).Run(); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
 	}
