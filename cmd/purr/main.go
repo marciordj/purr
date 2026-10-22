@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -52,7 +51,7 @@ func pickerMode() tea.Model {
 		os.Exit(1)
 	}
 	if picker.Empty() {
-		fmt.Fprintln(os.Stderr, "no .mov files in current directory")
+		fmt.Fprintln(os.Stderr, "no .mov or .qt files in current directory")
 		os.Exit(1)
 	}
 	return tui.NewApp(picker, false)
@@ -72,8 +71,8 @@ func parseArgs(argv []string) (inputs []string, fast bool, err error) {
 			fast = true
 		case strings.HasPrefix(arg, "-"):
 			return nil, false, fmt.Errorf("unknown flag %q", arg)
-		case !strings.EqualFold(filepath.Ext(arg), ".mov"):
-			return nil, false, fmt.Errorf("%q is not a .mov file", arg)
+		case !convert.IsSupportedInput(arg):
+			return nil, false, fmt.Errorf("%q is not a .mov or .qt file", arg)
 		default:
 			inputs = append(inputs, arg)
 		}

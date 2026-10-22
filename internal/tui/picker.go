@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/marciord/purr/internal/convert"
 )
 
 // Picker is the file-selection screen shown when purr is run without arguments.
@@ -20,7 +21,7 @@ type Picker struct {
 
 type movFile struct{ name, path string }
 
-// NewPicker scans dir for .mov files (case-insensitive) and returns a ready Picker.
+// NewPicker scans dir for .mov and .qt files (case-insensitive) and returns a ready Picker.
 func NewPicker(dir string) (Picker, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -29,7 +30,7 @@ func NewPicker(dir string) (Picker, error) {
 
 	var found []movFile
 	for _, e := range entries {
-		if !e.IsDir() && strings.EqualFold(filepath.Ext(e.Name()), ".mov") {
+		if !e.IsDir() && convert.IsSupportedInput(e.Name()) {
 			found = append(found, movFile{e.Name(), filepath.Join(dir, e.Name())})
 		}
 	}
@@ -51,7 +52,7 @@ func NewPicker(dir string) (Picker, error) {
 	}, nil
 }
 
-// Empty reports whether no .mov files were found.
+// Empty reports whether no .mov or .qt files were found.
 func (p Picker) Empty() bool { return len(p.files) == 0 }
 
 // Selected returns the absolute paths of all checked files, in list order.
@@ -94,7 +95,7 @@ func (p Picker) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (p Picker) View() string {
 	var b strings.Builder
 
-	b.WriteString(styleHeader.Render("purr — select .mov files"))
+	b.WriteString(styleHeader.Render("purr — select .mov or .qt files"))
 	b.WriteString("\n\n")
 
 	for i, name := range p.files {

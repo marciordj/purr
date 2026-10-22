@@ -144,7 +144,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m Model) View() string {
 	var b strings.Builder
 
-	b.WriteString(styleHeader.Render("purr — .mov → .mp4"))
+	b.WriteString(styleHeader.Render("purr — .mov/.qt → .mp4"))
 	b.WriteString("\n\n")
 
 	for _, j := range m.jobs {
