@@ -32,9 +32,36 @@ func TestParseArgs(t *testing.T) {
 			wantFast:   true,
 		},
 		{
-			name:    "non-.mov file",
+			name:       ".qt file",
+			argv:       []string{"a.qt"},
+			wantInputs: []string{"a.qt"},
+			wantFast:   false,
+		},
+		{
+			name:       "case variants of mov and qt",
+			argv:       []string{"a.QT", "b.MOV", "c.Qt", "d.Mov"},
+			wantInputs: []string{"a.QT", "b.MOV", "c.Qt", "d.Mov"},
+			wantFast:   false,
+		},
+		{
+			name:    "non-mov/qt file",
 			argv:    []string{"a.txt"},
-			wantErr: "not a .mov",
+			wantErr: "not a .mov or .qt",
+		},
+		{
+			name:    "mp4 output extension rejected",
+			argv:    []string{"a.mp4"},
+			wantErr: "not a .mov or .qt",
+		},
+		{
+			name:    "mkv rejected",
+			argv:    []string{"a.mkv"},
+			wantErr: "not a .mov or .qt",
+		},
+		{
+			name:    "no extension rejected",
+			argv:    []string{"a"},
+			wantErr: "not a .mov or .qt",
 		},
 		{
 			name:    "unknown flag",

@@ -1,6 +1,6 @@
 # purr
 
-purr converts QuickTime `.mov` files to `.mp4` from the terminal. It wraps `ffmpeg` with an interactive file picker and a progress view, and re-encodes recordings to HEVC using macOS VideoToolbox hardware encoding.
+purr converts QuickTime `.mov` and `.qt` files to `.mp4` from the terminal. It wraps `ffmpeg` with an interactive file picker and a progress view, and re-encodes recordings to HEVC using macOS VideoToolbox hardware encoding.
 
 Português (Brasil): [README.pt-BR.md](README.pt-BR.md)
 
@@ -19,7 +19,7 @@ make build          # produces ./purr
 ./purr              # open the picker in the current directory
 ```
 
-The picker lists only `.mov` files in the current directory. To convert a specific video directly, pass it as an argument:
+The picker lists only `.mov` and `.qt` files in the current directory. To convert a specific video directly, pass it as an argument:
 
 ```sh
 ./purr ~/Desktop/recording.mov
@@ -47,14 +47,15 @@ After code changes run `make install` again to update the installed binary.
 ```sh
 purr                    # file picker (current directory only, no subdirectories)
 purr video.mov          # convert one file directly, no picker
-purr clip1.mov clip2.mov  # convert several files, in order
+purr video.qt           # QuickTime .qt files work the same way
+purr clip1.mov clip2.qt  # convert several files, in order (mixing .mov and .qt is fine)
 purr --fast video.mov   # remux without re-encoding (-f is the same)
 ```
 
-- Arguments must be existing files whose extension is `.mov` (case-insensitive); anything else exits with an error.
-- The shell expands `purr *.mov` before launch, so the command receives the `.mov` files the glob matches on disk.
-- Output goes next to the input with the same base name: `video.mov` → `video.mp4`.
-- If the output file already exists, the job is skipped (shown as "output exists, skipped"); purr never overwrites.
+- Arguments must be existing files whose extension is `.mov` or `.qt` (case-insensitive); anything else exits with an error.
+- The shell expands `purr *.mov` (or `purr *.qt`) before launch, so the command receives the `.mov`/`.qt` files the glob matches on disk.
+- Output goes next to the input with the same base name: `video.mov` → `video.mp4`, `video.qt` → `video.mp4`.
+- If the output file already exists, the job is skipped (shown as "output exists, skipped"); purr never overwrites. Note that `.mov` and `.qt` inputs share output names — `video.mov` and `video.qt` in the same directory both target `video.mp4` — so converting both, in one run or across runs, produces a single output file and the second job is skipped.
 - Jobs run one at a time, in list order.
 - purr probes each file with `ffprobe` before converting with `ffmpeg`.
 
@@ -97,7 +98,7 @@ Each job shows ○ queued / ▸ running (with progress bar, speed and ETA) / ✓
 
 ## Known limits
 
-- Direct arguments and the picker accept `.mov` only; there is no recursive directory scan.
+- Direct arguments and the picker accept `.mov` and `.qt` only; there is no recursive directory scan. Accepting either extension does not mean every codec inside will convert — the codec notes above still apply.
 - Only one conversion at a time; the queue is sequential.
 - Errors surface ffmpeg's stderr under the failed entry.
 - No configuration file, no custom encoder selection, no output directory override.
